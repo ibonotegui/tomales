@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.7.7")
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

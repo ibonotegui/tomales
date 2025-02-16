@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.ibonotegui.tomales.model.Item
 import io.github.ibonotegui.tomales.repository.Repository
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ enum class UIState {
     IDLE, LOADING, SUCCESS, ERROR
 }
 
-class MainViewModel(private val repository: Repository) : ViewModel() {
+class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher) : ViewModel() {
 
     private val _uiStateFlow = MutableStateFlow(UIState.IDLE)
     val uiStateFlow: StateFlow<UIState>
@@ -25,7 +25,7 @@ class MainViewModel(private val repository: Repository) : ViewModel() {
         get() = _mutableItemsMap
 
     fun getSortedItems() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             try {
                 _uiStateFlow.emit(UIState.LOADING)
                 val itemList = repository.getItemList()
