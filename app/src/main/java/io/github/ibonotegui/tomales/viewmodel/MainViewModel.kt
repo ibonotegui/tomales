@@ -24,8 +24,7 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     val itemsMap: Map<Int, List<Item>>
         get() = _mutableItemsMap
 
-    fun getSortedItems() {
-        viewModelScope.launch(dispatcher) {
+    fun getSortedItems() = viewModelScope.launch(dispatcher) {
             try {
                 _uiStateFlow.emit(UIState.LOADING)
                 val itemList = repository.getItemList()
@@ -42,5 +41,4 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
                 _uiStateFlow.emit(UIState.ERROR)
             }
         }
-    }
 }
