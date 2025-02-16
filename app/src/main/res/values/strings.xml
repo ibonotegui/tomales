@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">tomales</string>
     <string name="retry">Retry</string>
+    <string name="add_item">Add Item</string>
     <string name="no_data_message">There are no items available.</string>
     <string name="error_message">We are sorry, an error occurred.</string>
 </resources>

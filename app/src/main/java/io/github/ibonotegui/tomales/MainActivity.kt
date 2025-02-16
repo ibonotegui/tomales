@@ -1,7 +1,6 @@
 package io.github.ibonotegui.tomales
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,9 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,7 +29,7 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -34,7 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import io.github.ibonotegui.tomales.repository.NetworkDatasource
+import io.github.ibonotegui.tomales.repository.LocalDatasource
 import io.github.ibonotegui.tomales.repository.Repository
 import io.github.ibonotegui.tomales.ui.theme.TomalesTheme
 import io.github.ibonotegui.tomales.viewmodel.MainViewModel
@@ -50,9 +53,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val repository = Repository(NetworkDatasource())
+        //val repository = Repository(NetworkDatasource())
         // using a local data source simplifies UI testing
-        // val repository = Repository(LocalDatasource())
+        val repository = Repository(LocalDatasource())
         // our viewmodel will be reused when orientation changes and onCreate is called
         val mainViewModel = ViewModelProvider(viewModelStore, ViewModelFactory(repository))[MainViewModel::class.java]
 
@@ -68,6 +71,14 @@ class MainActivity : ComponentActivity() {
                             Text(stringResource(R.string.app_name))
                         }
                     )
+                }, floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            mainViewModel.addItem()
+                        },
+                    ) {
+                        Icon(Icons.Filled.Add, stringResource(R.string.add_item))
+                    }
                 }, modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ItemsList(mainViewModel, modifier = Modifier.padding(innerPadding))
                 }
@@ -89,9 +100,8 @@ fun CategoryHeader(category: String, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
-    val uiState by rememberUpdatedState(mainViewModel.uiStateFlow.collectAsState())
-    Log.d(TAG, "uiState $uiState")
-    when (uiState.value) {
+    val uiState by remember { mainViewModel.uiStateFlow }.collectAsState()
+    when (uiState) {
         UIState.IDLE -> {
             mainViewModel.getSortedItems()
         }
