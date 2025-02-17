@@ -44,16 +44,26 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
             }
         }
 
-    fun addItem() = viewModelScope.launch(dispatcher) {
+    fun addItem(listId: Int = Random.nextInt(4)) = viewModelScope.launch(dispatcher) {
         _uiStateFlow.emit(UIState.LOADING)
-        delay(1000)
+        delay(500)
         val newId = itemsList.size + 1
-        val listId = Random.nextInt(4)
         val newItem = Item(id = newId, listId = listId, name = "Item $newId")
         itemsList.add(newItem)
         _mutableItemsMap.clear()
         _mutableItemsMap.putAll(sortItems(itemsList))
         _uiStateFlow.emit(UIState.SUCCESS)
+    }
+
+    fun deleteItem(itemId: Int, listId: Int) = viewModelScope.launch(dispatcher) {
+        itemsList.removeIf { it.id == itemId }
+        _mutableItemsMap.clear()
+        _mutableItemsMap.putAll(sortItems(itemsList))
+        if (!_mutableItemsMap.containsKey(listId)) {
+            _uiStateFlow.emit(UIState.LOADING)
+            delay(500)
+            _uiStateFlow.emit(UIState.SUCCESS)
+        }
     }
 
     private fun sortItems(itemList: List<Item>): Map<Int, List<Item>> {
