@@ -74,4 +74,13 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
         }.sortedWith(compareBy<Item> { it.listId }.thenBy { it.id }).groupBy { it.listId }.toMap()
     }
 
+    fun setIsFavorite(itemId: Int) {
+        _mutableItemsMap.values.forEach {
+            it.forEach { item ->
+                if (item.id == itemId) {
+                    item.isFavorite = true
+                }
+            }
+        }
+    }
 }

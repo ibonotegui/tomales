@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -213,13 +214,25 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                                     mainViewModel.deleteItem(item.id, item.listId)
                                     Log.d(TAG, "deleted item id " + item.id)
                             }) {
-                                Text(
-                                    text = "${item.name}",
-                                    fontSize = 18.sp,
+                                Row(
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .fillMaxWidth()
-                                )
+                                        .fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${item.name}",
+                                        fontSize = 18.sp
+                                    )
+                                    var isCheckedState by remember { mutableStateOf(false) }
+                                    Checkbox(
+                                        checked = isCheckedState,
+                                        onCheckedChange = { isChecked ->
+                                            isCheckedState = isChecked
+                                            mainViewModel.setIsFavorite(item.id)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -315,7 +328,7 @@ fun DeleteItemRow(swipeToDismissBoxState: SwipeToDismissBoxState, onDelete: () -
         Icon(
             Icons.Default.Delete, //Icons.Outlined.Delete
             contentDescription = "delete item",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.background,
             modifier = Modifier.clickable {
                 onDelete()
             }
