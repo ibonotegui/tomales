@@ -1,6 +1,5 @@
 package io.github.ibonotegui.tomales.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.ibonotegui.tomales.model.Item
@@ -22,7 +21,7 @@ sealed class UIState {
 
 class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher) : ViewModel() {
 
-    private var itemsList: MutableList<Item> = mutableStateListOf()
+    private var itemsList: MutableList<Item> = mutableListOf()
 
     private val _uiStateFlow = MutableStateFlow<UIState>(UIState.Idle)
     val uiStateFlow: StateFlow<UIState>
