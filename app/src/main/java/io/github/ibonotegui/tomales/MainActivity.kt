@@ -190,7 +190,7 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
         }
 
         is UIState.Success -> {
-            val itemsMap = (uiState as UIState.Success).items //mainViewModel.itemsMap
+            val itemsMap = (uiState as UIState.Success).items
             if (itemsMap.isEmpty()) {
                 Text(
                     text = stringResource(R.string.no_data_message),
