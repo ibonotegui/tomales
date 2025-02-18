@@ -172,11 +172,11 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     val uiState by remember { mainViewModel.uiStateFlow }.collectAsState()
     Log.d(TAG, "uiState $uiState")
     when (uiState) {
-        UIState.IDLE -> {
+        is UIState.Idle -> {
             mainViewModel.getSortedItems()
         }
 
-        UIState.LOADING -> {
+        is UIState.Loading -> {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
@@ -189,8 +189,8 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
             }
         }
 
-        UIState.SUCCESS -> {
-            val itemsMap = mainViewModel.itemsMap
+        is UIState.Success -> {
+            val itemsMap = (uiState as UIState.Success).items //mainViewModel.itemsMap
             if (itemsMap.isEmpty()) {
                 Text(
                     text = stringResource(R.string.no_data_message),
@@ -224,12 +224,12 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                                         text = "${item.name}",
                                         fontSize = 18.sp
                                     )
-                                    var isCheckedState by remember { mutableStateOf(false) }
+                                    var isCheckedState by remember { mutableStateOf(item.isFavorite) }
                                     Checkbox(
                                         checked = isCheckedState,
                                         onCheckedChange = { isChecked ->
                                             isCheckedState = isChecked
-                                            mainViewModel.setIsFavorite(item.id)
+                                            mainViewModel.setIsFavorite(item.id, isFavorite = isChecked)
                                         },
                                     )
                                 }
@@ -239,11 +239,11 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-
-        else -> {
+        is UIState.Error -> {
+            val errorMessage = (uiState as UIState.Error).message
             Column(modifier = modifier.padding(20.dp)) {
                 Text(
-                    text = stringResource(R.string.error_message),
+                    text = stringResource(R.string.error_message) + "\n" + errorMessage,
                     fontSize = 18.sp
                 )
                 Button(
