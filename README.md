@@ -5,4 +5,4 @@ App follows the repository pattern so switching data sources is very simple. The
 
 ./gradlew installDebug will install the apk 
 
-![screenshot](https://github.com/ibonotegui/tomales/blob/main/screenshots/screenshot_1738789804.png)
+![screenshot](https://github.com/ibonotegui/tomales/blob/main/screenshots/screenshot1.png)
