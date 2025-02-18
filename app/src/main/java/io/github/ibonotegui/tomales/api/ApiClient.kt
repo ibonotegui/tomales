@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
-const val BASE_URL = "https://fetch-hiring.s3.amazonaws.com/"
+const val BASE_URL = "https://ibonotegui.github.io/labs/"
 const val TIME_OUT_SECONDS = 10L
 
 object ApiClient {
