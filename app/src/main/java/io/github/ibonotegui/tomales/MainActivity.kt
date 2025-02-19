@@ -6,14 +6,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,16 +28,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxState
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -63,10 +50,10 @@ import io.github.ibonotegui.tomales.repository.LocalDatasource
 import io.github.ibonotegui.tomales.repository.Repository
 import io.github.ibonotegui.tomales.ui.theme.TomalesTheme
 import io.github.ibonotegui.tomales.view.AddItemAlertDialog
+import io.github.ibonotegui.tomales.view.SwipeToDeleteContainer
 import io.github.ibonotegui.tomales.viewmodel.MainViewModel
 import io.github.ibonotegui.tomales.viewmodel.UIState
 import io.github.ibonotegui.tomales.viewmodel.ViewModelFactory
-import kotlinx.coroutines.delay
 
 const val TAG = "tomales"
 
@@ -146,7 +133,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }, modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ItemsList(mainViewModel, modifier = Modifier.padding(innerPadding))
+                    ItemsLazyList(mainViewModel, modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -168,7 +155,7 @@ fun CategoryHeader(category: String, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
+fun ItemsLazyList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     val uiState by remember { mainViewModel.uiStateFlow }.collectAsState()
     Log.d(TAG, "uiState $uiState")
     when (uiState) {
@@ -254,83 +241,5 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun <T> SwipeToDeleteContainer(
-    item: T,
-    onDelete: (T) -> Unit,
-    animationDuration: Int = 600,
-    content: @Composable (T) -> Unit
-) {
-    var isDeleted by remember { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            when (it) {
-                SwipeToDismissBoxValue.EndToStart -> {
-                    isDeleted = true
-                }
-                SwipeToDismissBoxValue.StartToEnd, SwipeToDismissBoxValue.Settled -> return@rememberSwipeToDismissBoxState false
-            }
-            return@rememberSwipeToDismissBoxState true
-        },
-        positionalThreshold = { it * .25f }
-    )
-
-    LaunchedEffect(key1 = isDeleted) {
-        if (isDeleted) {
-            delay(animationDuration.toLong())
-            onDelete(item)
-        }
-    }
-
-    AnimatedVisibility(
-        visible = !isDeleted,
-        exit = shrinkVertically(
-            animationSpec = tween(durationMillis = animationDuration),
-            shrinkTowards = Alignment.Top
-        ) + fadeOut()
-    ) {
-        SwipeToDismissBox(
-            state = dismissState,
-            backgroundContent = {
-                DeleteItemRow(swipeToDismissBoxState = dismissState, onDelete = {
-                    isDeleted = true
-                })
-            },
-            enableDismissFromEndToStart = true,
-            enableDismissFromStartToEnd = false,
-            content = {
-                content(item)
-            })
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeleteItemRow(swipeToDismissBoxState: SwipeToDismissBoxState, onDelete: () -> Unit) {
-    val color = when (swipeToDismissBoxState.dismissDirection) {
-        SwipeToDismissBoxValue.StartToEnd -> Color.Green
-        SwipeToDismissBoxValue.EndToStart -> Color.Red
-        SwipeToDismissBoxValue.Settled -> Color.Transparent
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color)
-            .padding(12.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
-    ) {
-        Icon(
-            Icons.Default.Delete, //Icons.Outlined.Delete
-            contentDescription = "delete item",
-            tint = MaterialTheme.colorScheme.background,
-            modifier = Modifier.clickable {
-                onDelete()
-            }
-        )
     }
 }
