@@ -211,8 +211,8 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                             SwipeToDeleteContainer(
                                 item = item,
                                 onDelete = {
-                                    mainViewModel.deleteItem(item.id, item.listId)
-                                    Log.d(TAG, "deleted item id " + item.id)
+                                    mainViewModel.deleteItem(item.item.id, item.item.listId)
+                                    Log.d(TAG, "deleted item id " + item.item.id)
                             }) {
                                 Row(
                                     modifier = Modifier
@@ -221,15 +221,14 @@ fun ItemsList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "${item.name}",
+                                        text = "${item.item.name}",
                                         fontSize = 18.sp
                                     )
-                                    var isCheckedState by remember { mutableStateOf(item.isFavorite) }
+                                    val isCheckedState by remember { item.isFavorite }
                                     Checkbox(
                                         checked = isCheckedState,
                                         onCheckedChange = { isChecked ->
-                                            isCheckedState = isChecked
-                                            mainViewModel.setIsFavorite(item.id, isFavorite = isChecked)
+                                            mainViewModel.setIsFavorite(item.item.id, isFavorite = isChecked)
                                         },
                                     )
                                 }

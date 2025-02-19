@@ -1,8 +1,10 @@
 package io.github.ibonotegui.tomales.viewmodel
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.ibonotegui.tomales.model.Item
+import io.github.ibonotegui.tomales.model.ItemUI
 import io.github.ibonotegui.tomales.repository.Repository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
@@ -15,13 +17,13 @@ import kotlin.random.Random
 sealed class UIState {
     data object Idle : UIState()
     data object Loading : UIState()
-    data class Success(val items: Map<Int, List<Item>>) : UIState()
+    data class Success(val items: Map<Int, List<ItemUI>>) : UIState()
     data class Error(val message: String?) : UIState()
 }
 
 class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher) : ViewModel() {
 
-    private var itemsList: MutableList<Item> = mutableListOf()
+    private var itemsList: MutableList<ItemUI> = mutableListOf()
 
     private val _uiStateFlow = MutableStateFlow<UIState>(UIState.Idle)
     val uiStateFlow: StateFlow<UIState>
@@ -30,7 +32,12 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     fun getSortedItems() = viewModelScope.launch(dispatcher) {
             try {
                 _uiStateFlow.emit(UIState.Loading)
-                itemsList = repository.getItemList().toMutableList()
+                val repositoryItems = repository.getItemList()
+                repositoryItems.forEach {
+                    val isFavorite = Random.nextInt(10) % 2 == 0
+                    val itemUI = ItemUI(it, mutableStateOf(isFavorite))
+                    itemsList.add(itemUI)
+                }
                 _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
             } catch (exception: Exception) {
                 _uiStateFlow.emit(UIState.Error(exception.message))
@@ -42,31 +49,31 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
         delay(500)
         val newId = itemsList.size + 1
         val newItem = Item(id = newId, listId = listId, name = "Item $newId")
-        itemsList.add(newItem)
+        itemsList.add(ItemUI(newItem, mutableStateOf(false)))
         _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
     }
 
     fun deleteItem(itemId: Int, listId: Int) = viewModelScope.launch(dispatcher) {
-        itemsList.removeIf { it.id == itemId }
-        if (itemsList.find { it.listId == listId } == null) {
+        itemsList.removeIf { it.item.id == itemId }
+        if (itemsList.find { it.item.listId == listId } == null) {
             _uiStateFlow.emit(UIState.Loading)
             delay(500)
             _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
         }
     }
 
-    private fun sortItems(itemList: List<Item>): Map<Int, List<Item>> {
+    private fun sortItems(itemList: List<ItemUI>): Map<Int, List<ItemUI>> {
         // since the last part of 'name' matches 'id' I decided to sort
         // by 'id' instead of converting the name substring to an Int and then sort it
         return itemList.filter {
-            !it.name.isNullOrEmpty()
-        }.sortedWith(compareBy<Item> { it.listId }.thenBy { it.id }).groupBy { it.listId }.toMap()
+            !it.item.name.isNullOrEmpty()
+        }.sortedWith(compareBy<ItemUI> { it.item.listId }.thenBy { it.item.id }).groupBy { it.item.listId }.toMap()
     }
 
     fun setIsFavorite(itemId: Int, isFavorite: Boolean) {
         itemsList.forEach { item ->
-            if (item.id == itemId) {
-                item.isFavorite = isFavorite
+            if (item.item.id == itemId) {
+                item.isFavorite.value = isFavorite
             }
         }
     }
