@@ -32,12 +32,10 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     fun getSortedItems() = viewModelScope.launch(dispatcher) {
             try {
                 _uiStateFlow.emit(UIState.Loading)
-                val repositoryItems = repository.getItemList()
-                repositoryItems.forEach {
+                itemsList = repository.getItemList().map { item ->
                     val isFavorite = Random.nextInt(10) % 2 == 0
-                    val itemUI = ItemUI(it, mutableStateOf(isFavorite))
-                    itemsList.add(itemUI)
-                }
+                    ItemUI(item, mutableStateOf(isFavorite))
+                }.toMutableList()
                 _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
             } catch (exception: Exception) {
                 _uiStateFlow.emit(UIState.Error(exception.message))
@@ -47,7 +45,11 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     fun addItem(listId: Int = Random.nextInt(4)) = viewModelScope.launch(dispatcher) {
         _uiStateFlow.emit(UIState.Loading)
         delay(500)
-        val newId = itemsList.size + 1
+        val newId = if (itemsList.size > 0) {
+            itemsList.maxBy { it.item.id }.item.id.plus(1)
+        } else {
+            0
+        }
         val newItem = Item(id = newId, listId = listId, name = "Item $newId")
         itemsList.add(ItemUI(newItem, mutableStateOf(false)))
         _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
