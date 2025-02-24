@@ -1,11 +1,11 @@
 package io.github.ibonotegui.tomales.repository
 
-import io.github.ibonotegui.tomales.api.ApiClient
+import io.github.ibonotegui.tomales.api.TomalesAPI
 import io.github.ibonotegui.tomales.model.Item
 
-class NetworkDatasource : Datasource {
+class NetworkDatasource(val tomalesAPI: TomalesAPI) : Datasource {
     override suspend fun getItemList() : List<Item> {
-        val response = ApiClient.getTomalesAPI().getItemList().execute()
+        val response = tomalesAPI.getItemList().execute()
         if (response.isSuccessful) {
             return if (response.body().isNullOrEmpty()) {
                 emptyList()

@@ -7,6 +7,7 @@ import io.github.ibonotegui.tomales.model.Item
 import io.github.ibonotegui.tomales.model.ItemUI
 import io.github.ibonotegui.tomales.repository.Repository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ sealed class UIState {
     data class Error(val message: String?) : UIState()
 }
 
-class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher) : ViewModel() {
+class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher = Dispatchers.IO) : ViewModel() {
 
     private var itemsList: MutableList<ItemUI> = mutableListOf()
 
@@ -65,8 +66,6 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     }
 
     private fun sortItems(itemList: List<ItemUI>): Map<Int, List<ItemUI>> {
-        // since the last part of 'name' matches 'id' I decided to sort
-        // by 'id' instead of converting the name substring to an Int and then sort it
         return itemList.filter {
             !it.item.name.isNullOrEmpty()
         }.sortedWith(compareBy<ItemUI> { it.item.listId }.thenBy { it.item.id }).groupBy { it.item.listId }.toMap()

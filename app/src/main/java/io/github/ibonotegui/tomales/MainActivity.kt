@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -45,15 +46,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import io.github.ibonotegui.tomales.repository.LocalDatasource
-import io.github.ibonotegui.tomales.repository.Repository
 import io.github.ibonotegui.tomales.ui.theme.TomalesTheme
 import io.github.ibonotegui.tomales.view.AddItemAlertDialog
 import io.github.ibonotegui.tomales.view.SwipeToDeleteContainer
 import io.github.ibonotegui.tomales.viewmodel.MainViewModel
 import io.github.ibonotegui.tomales.viewmodel.UIState
-import io.github.ibonotegui.tomales.viewmodel.ViewModelFactory
+import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.androidx.compose.koinViewModel
 
 const val TAG = "tomales"
 
@@ -64,76 +63,74 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        //val repository = Repository(NetworkDatasource())
-        // using a local data source simplifies UI testing
-        val repository = Repository(LocalDatasource())
-        // our viewmodel will be reused when orientation changes and onCreate is called
-        val mainViewModel = ViewModelProvider(viewModelStore, ViewModelFactory(repository))[MainViewModel::class.java]
-
         setContent {
             TomalesTheme {
-                Scaffold(topBar = {
-                    TopAppBar(
-                        colors = topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            titleContentColor = MaterialTheme.colorScheme.primary,
-                        ),
-                        title = {
-                            Text(stringResource(R.string.app_name))
-                        }
-                    )
-                }, floatingActionButton = {
-                    var isDialogVisible by remember { mutableStateOf(false) }
-                    FloatingActionButton(
-                        onClick = {
-                            isDialogVisible = true
-                        },
-                    ) {
-                        Icon(Icons.Filled.Add, stringResource(R.string.add_item))
-                    }
-                    if (isDialogVisible) {
-                        var listId by remember { mutableStateOf("") }
-                        AddItemAlertDialog(
+                val mainViewModel: MainViewModel = koinViewModel(viewModelStoreOwner = LocalActivity.current as MainActivity)
+                KoinAndroidContext {
+                    Scaffold(topBar = {
+                        TopAppBar(
+                            colors = topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                titleContentColor = MaterialTheme.colorScheme.primary,
+                            ),
                             title = {
-                                Text(text = stringResource(R.string.new_item))
-                            },
-                            content = {
-                                OutlinedTextField(
-                                    value = listId,
-                                    onValueChange = {
-                                        listId = it
-                                    },
-                                    label = { Text(stringResource(R.string.list_id)) },
-                                )
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = { isDialogVisible = false },
-                                    content = { Text(stringResource(R.string.cancel)) },
-                                )
-                            },
-                            confirmButton = {
-                                val context = LocalContext.current
-                                val text = stringResource(R.string.invalid_list_id)
-                                TextButton(
-                                    onClick = {
-                                        if (listId.toIntOrNull() != null) {
-                                            mainViewModel.addItem(listId = listId.toInt())
-                                            isDialogVisible = false
-                                        } else {
-                                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-                                        }
-                                    },
-                                    content = { Text(stringResource(R.string.add_item)) },
-                                )
-                            },
-                            onDismiss = {
-                                isDialogVisible = false
-                            },
+                                Text(stringResource(R.string.app_name))
+                            }
                         )
+                    }, floatingActionButton = {
+                        var isDialogVisible by remember { mutableStateOf(false) }
+                        FloatingActionButton(
+                            onClick = {
+                                isDialogVisible = true
+                            },
+                        ) {
+                            Icon(Icons.Filled.Add, stringResource(R.string.add_item))
+                        }
+                        if (isDialogVisible) {
+                            var listId by remember { mutableStateOf("") }
+                            AddItemAlertDialog(
+                                title = {
+                                    Text(text = stringResource(R.string.new_item))
+                                },
+                                content = {
+                                    OutlinedTextField(
+                                        value = listId,
+                                        onValueChange = {
+                                            listId = it
+                                        },
+                                        label = { Text(stringResource(R.string.list_id)) },
+                                    )
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = { isDialogVisible = false },
+                                        content = { Text(stringResource(R.string.cancel)) },
+                                    )
+                                },
+                                confirmButton = {
+                                    val context = LocalContext.current
+                                    val text = stringResource(R.string.invalid_list_id)
+                                    TextButton(
+                                        onClick = {
+                                            if (listId.toIntOrNull() != null) {
+                                                mainViewModel.addItem(listId = listId.toInt())
+                                                isDialogVisible = false
+                                            } else {
+                                                Toast.makeText(context, text, Toast.LENGTH_SHORT)
+                                                    .show()
+                                            }
+                                        },
+                                        content = { Text(stringResource(R.string.add_item)) },
+                                    )
+                                },
+                                onDismiss = {
+                                    isDialogVisible = false
+                                },
+                            )
+                        }
+                    }, modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        ItemsLazyList(mainViewModel, modifier = Modifier.padding(innerPadding))
                     }
-                }, modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ItemsLazyList(mainViewModel, modifier = Modifier.padding(innerPadding))
                 }
             }
         }

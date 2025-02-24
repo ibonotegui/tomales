@@ -36,6 +36,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -49,12 +50,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.7")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.converter.moshi)
+    implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.squareup.moshi.kotlin)
+
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
