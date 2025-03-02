@@ -24,7 +24,8 @@ sealed class UIState {
 
 class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher = Dispatchers.IO) : ViewModel() {
 
-    private var itemsList: MutableList<ItemUI> = mutableListOf()
+    var itemsList: MutableList<ItemUI> = mutableListOf()
+        private set
 
     private val _uiStateFlow = MutableStateFlow<UIState>(UIState.Idle)
     val uiStateFlow: StateFlow<UIState>

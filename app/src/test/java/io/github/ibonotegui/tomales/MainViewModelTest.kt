@@ -18,11 +18,11 @@ class MainViewModelTest {
     fun mainViewModel_UIStateChanges() = runTest {
         val mainViewModel = MainViewModel(Repository(LocalDatasource()), StandardTestDispatcher(testScheduler))
         var currentUiState = mainViewModel.uiStateFlow.value
-        assertEquals(UIState.IDLE, currentUiState)
+        assertEquals(UIState.Idle, currentUiState)
         mainViewModel.getSortedItems()
         advanceUntilIdle()
-        assertEquals(mainViewModel.itemsMap.isNotEmpty(), true)
-        currentUiState = mainViewModel.uiStateFlow.value
-        assertEquals(UIState.SUCCESS, currentUiState)
+        assertEquals(mainViewModel.itemsList.isNotEmpty(), true)
+        currentUiState = mainViewModel.uiStateFlow.value as UIState.Success
+        assertEquals(UIState.Success(currentUiState.items), currentUiState)
     }
 }

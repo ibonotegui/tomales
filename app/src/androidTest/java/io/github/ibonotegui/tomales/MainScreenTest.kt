@@ -21,7 +21,7 @@ class MainScreenTest {
         mainViewModel.getSortedItems()
 
         composeTestRule.setContent {
-            ItemsList(mainViewModel)
+            ItemsLazyList(mainViewModel)
         }
 
         composeTestRule
