@@ -12,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -24,25 +25,24 @@ sealed class UIState {
 
 class MainViewModel(private val repository: Repository, private val dispatcher: CoroutineDispatcher = Dispatchers.IO) : ViewModel() {
 
-    var itemsList: MutableList<ItemUI> = mutableListOf()
-        private set
+    private var itemsList: MutableList<ItemUI> = mutableListOf()
 
     private val _uiStateFlow = MutableStateFlow<UIState>(UIState.Idle)
     val uiStateFlow: StateFlow<UIState>
         get() = _uiStateFlow.asStateFlow()
 
     fun getSortedItems() = viewModelScope.launch(dispatcher) {
-            try {
-                _uiStateFlow.emit(UIState.Loading)
-                itemsList = repository.getItemList().map { item ->
-                    val isFavorite = Random.nextInt(10) % 2 == 0
-                    ItemUI(item, mutableStateOf(isFavorite))
-                }.toMutableList()
-                _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
-            } catch (exception: Exception) {
-                _uiStateFlow.emit(UIState.Error(exception.message))
-            }
+        try {
+            _uiStateFlow.emit(UIState.Loading)
+            itemsList = repository.getItemList().map { item ->
+                val isFavorite = Random.nextInt(10) % 2 == 0
+                ItemUI(item, mutableStateOf(isFavorite))
+            }.toMutableList()
+            _uiStateFlow.emit(UIState.Success(getSortedMap(itemsList)))
+        } catch (exception: Exception) {
+            _uiStateFlow.emit(UIState.Error(exception.message))
         }
+    }
 
     fun addItem(listId: Int = Random.nextInt(4)) = viewModelScope.launch(dispatcher) {
         _uiStateFlow.emit(UIState.Loading)
@@ -54,7 +54,7 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
         }
         val newItem = Item(id = newId, listId = listId, name = "Item $newId")
         itemsList.add(ItemUI(newItem, mutableStateOf(false)))
-        _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
+        _uiStateFlow.emit(UIState.Success(getSortedMap(itemsList)))
     }
 
     fun deleteItem(itemId: Int, listId: Int) = viewModelScope.launch(dispatcher) {
@@ -62,14 +62,19 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
         if (itemsList.find { it.item.listId == listId } == null) {
             _uiStateFlow.emit(UIState.Loading)
             delay(500)
-            _uiStateFlow.emit(UIState.Success(sortItems(itemsList)))
+            _uiStateFlow.emit(UIState.Success(getSortedMap(itemsList)))
+        } else {
+            _uiStateFlow.update {
+                UIState.Success(getSortedMap(itemsList))
+            }
         }
     }
 
-    private fun sortItems(itemList: List<ItemUI>): Map<Int, List<ItemUI>> {
+    private fun getSortedMap(itemList: List<ItemUI>): Map<Int, List<ItemUI>> {
         return itemList.filter {
             !it.item.name.isNullOrEmpty()
-        }.sortedWith(compareBy<ItemUI> { it.item.listId }.thenBy { it.item.id }).groupBy { it.item.listId }.toMap()
+        }.sortedWith(compareBy<ItemUI> { it.item.listId }.thenBy { it.item.id })
+            .groupBy { it.item.listId }.toMap()
     }
 
     fun setIsFavorite(itemId: Int, isFavorite: Boolean) {
