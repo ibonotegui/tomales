@@ -31,7 +31,7 @@ class MainViewModel(private val repository: Repository, private val dispatcher: 
     val uiStateFlow: StateFlow<UIState>
         get() = _uiStateFlow.asStateFlow()
 
-    fun getSortedItems() = viewModelScope.launch(dispatcher) {
+    fun getItemsFromRepository() = viewModelScope.launch(dispatcher) {
         try {
             _uiStateFlow.emit(UIState.Loading)
             itemsList = repository.getItemList().map { item ->

@@ -56,7 +56,7 @@ fun ItemsLazyList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     Log.d(TAG, "uiState $uiState")
     when (uiState) {
         is UIState.Idle -> {
-            mainViewModel.getSortedItems()
+            mainViewModel.getItemsFromRepository()
         }
 
         is UIState.Loading -> {
@@ -86,7 +86,7 @@ fun ItemsLazyList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                 val isRefreshing = remember { mutableStateOf(false) }
                 PullToRefreshBox(
                     isRefreshing = isRefreshing.value, onRefresh = {
-                        mainViewModel.getSortedItems()
+                        mainViewModel.getItemsFromRepository()
                     }, state = state
                 ) {
                     LazyColumn(modifier = modifier.fillMaxSize()) {
@@ -136,7 +136,7 @@ fun ItemsLazyList(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
                     fontSize = 18.sp
                 )
                 Button(onClick = {
-                    mainViewModel.getSortedItems()
+                    mainViewModel.getItemsFromRepository()
                 }) {
                     Text(stringResource(R.string.retry))
                 }
